@@ -1,3 +1,0 @@
-C:/Users/PCLor/Desktop/Raycasting-engine/build/CMakeFiles/engine.dir
-C:/Users/PCLor/Desktop/Raycasting-engine/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/PCLor/Desktop/Raycasting-engine/build/CMakeFiles/ZERO_CHECK.dir
