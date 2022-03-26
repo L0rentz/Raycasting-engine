@@ -25,7 +25,7 @@ class Core {
     private:
         sf::RenderWindow _window;
         sf::Event _event;
-        Player _player;
+        Player *_player;
         std::vector<Map> _maps;
         int _selected;
 

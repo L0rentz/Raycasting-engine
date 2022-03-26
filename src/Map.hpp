@@ -3,21 +3,20 @@
 
 #include <fstream>
 #include <vector>
+#include <map>
 
 #include "Exception.hpp"
 #include "SFML/Graphics.hpp"
 
+#define CASE_SIZE 32.0f
+
 class Map {
     public:
-        Map(const sf::RenderWindow &window);
-        Map(const std::string &path, const sf::RenderWindow &window);
-        ~Map();
+        typedef struct s_line {
+            sf::Vector2f A;
+            sf::Vector2f B;
+        } line_t;
 
-        void draw(sf::RenderWindow &window);
-        void event(const sf::Event &event, const sf::RenderWindow &window);
-
-    protected:
-    private:
         typedef struct s_cell {
             bool exist;
             sf::RectangleShape rect;
@@ -25,10 +24,17 @@ class Map {
             int edgeId[4];
         } cell_t;
 
-        typedef struct s_line {
-            sf::Vector2f A;
-            sf::Vector2f B;
-        } line_t;
+        Map(const sf::RenderWindow &window);
+        Map(const std::string &path, const sf::RenderWindow &window);
+        ~Map();
+
+        void draw(sf::RenderWindow &window);
+        void event(const sf::Event &event, const sf::RenderWindow &window);
+        std::map<int, line_t> &getMapvertex();
+        cell_t *getCellmap();
+
+    protected:
+    private:
 
         enum {
             TOP,
@@ -46,6 +52,8 @@ class Map {
         std::map<int, line_t> _vertexmap;
         sf::CircleShape _vertice;
         sf::VertexArray _line;
+        bool _leftPressed;
+        bool _pressedExist;
 
         void generateCellmap();
         void constructorCommons(const sf::RenderWindow &window);

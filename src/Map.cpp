@@ -1,13 +1,12 @@
 #include "Map.hpp"
-#include <windows.h>
 
 Map::Map(const std::string &path, const sf::RenderWindow &window)
 {
     constructorCommons(window);
 
-    // getFileContent(path);
-    // generateCellmap();
-    // generateVertexmap();
+    getFileContent(path);
+    generateCellmap();
+    generateVertexmap();
 }
 
 Map::Map(const sf::RenderWindow &window)
@@ -17,24 +16,23 @@ Map::Map(const sf::RenderWindow &window)
 
 void Map::constructorCommons(const sf::RenderWindow &window)
 {
-    _caseSize = 64.0f;
     _windowSize = window.getSize();
-    _cellmapWidth = static_cast<int>(std::ceil(_windowSize.x / _caseSize));
-    _cellmapSize = static_cast<int>(_cellmapWidth * std::ceil(_windowSize.y / _caseSize));
+    _cellmapWidth = static_cast<int>(std::ceil(_windowSize.x / CASE_SIZE));
+    _cellmapSize = static_cast<int>(_cellmapWidth * std::ceil(_windowSize.y / CASE_SIZE));
     _cellmap = new cell_t[_cellmapSize];
     sf::Vector2f position = {0.0f, 0.0f};
     for (int i = 0; i < _cellmapSize; i++) {
-        if (position.x > _windowSize.x - _caseSize) {
-            position.y += _caseSize;
+        if (position.x > _windowSize.x - CASE_SIZE) {
+            position.y += CASE_SIZE;
             position.x = 0.0f;
         }
-        _cellmap[i].exist = true;
-        _cellmap[i].rect = sf::RectangleShape(sf::Vector2f{_caseSize, _caseSize});
+        _cellmap[i].exist = false;
+        _cellmap[i].rect = sf::RectangleShape(sf::Vector2f{CASE_SIZE, CASE_SIZE});
         _cellmap[i].rect.setPosition(position);
         _cellmap[i].rect.setFillColor(sf::Color::Blue);
         for (int j = 0; j < 4; j++) _cellmap[i].isEdge[j] = false;
         for (int j = 0; j < 4; j++) _cellmap[i].edgeId[j] = false;
-        position.x += _caseSize;
+        position.x += CASE_SIZE;
     }
     _filemap = nullptr;
 
@@ -46,6 +44,8 @@ void Map::constructorCommons(const sf::RenderWindow &window)
     _line = sf::VertexArray(sf::LinesStrip, 2);
     _line[0].color = sf::Color::White;
     _line[1].color = sf::Color::White;
+    _leftPressed = false;
+    _pressedExist = false;
 }
 
 Map::~Map()
@@ -54,10 +54,20 @@ Map::~Map()
     //     delete[] _filemap;
 }
 
+Map::cell_t *Map::getCellmap()
+{
+    return _cellmap;
+}
+
+std::map<int, Map::line_t> &Map::getMapvertex()
+{
+    return _vertexmap;
+}
+
 int Map::getCellId(const sf::Vector2f &position) const
 {
     if (position.x > _windowSize.x || position.x < 0.0f || position.y > _windowSize.y || position.y < 0.0f) return -1;
-    return static_cast<int>(std::floor(position.x / _caseSize) + std::floor(position.y / _caseSize) * std::floor(_windowSize.x / _caseSize));
+    return static_cast<int>(std::floor(position.x / CASE_SIZE) + std::floor(position.y / CASE_SIZE) * std::floor(_windowSize.x / CASE_SIZE));
 }
 
 void Map::generateCellmap()
@@ -66,10 +76,10 @@ void Map::generateCellmap()
     for (int i = 0, cellmapIdx; _filemap[i] != '\0'; i++) {
         cellmapIdx = getCellId(position);
         if (_filemap[i] == '#') _cellmap[cellmapIdx].exist = true;
-        if (_filemap[i] == '\n') {
+        if (_filemap[i] == '\n' || position.x >= _windowSize.x - CASE_SIZE) {
             position.x = 0.0f;
-            position.y += _caseSize;
-        } else position.x += _caseSize;
+            position.y += CASE_SIZE;
+        } else position.x += CASE_SIZE;
     }
 }
 
@@ -85,53 +95,53 @@ void Map::generateVertexmap()
         for (int j = 0; j < 4; j++) _cellmap[i].edgeId[j] = false;
         if (_cellmap[i].exist) {
             position = _cellmap[i].rect.getPosition();
-            if (getCellId(sf::Vector2f{position.x + _caseSize, position.y}) == -1 || !_cellmap[i + 1].exist) {
+            if (getCellId(sf::Vector2f{position.x + CASE_SIZE, position.y}) == -1 || !_cellmap[i + 1].exist) {
                 if (position.y > 0 && _cellmap[i - _cellmapWidth].isEdge[RIGHT]) {
-                    _vertexmap[_cellmap[i - _cellmapWidth].edgeId[RIGHT]].B.y += _caseSize;
+                    _vertexmap[_cellmap[i - _cellmapWidth].edgeId[RIGHT]].B.y += CASE_SIZE;
                     _cellmap[i].isEdge[RIGHT] = true;
                     _cellmap[i].edgeId[RIGHT] = _cellmap[i - _cellmapWidth].edgeId[RIGHT];
                 }
                 else {
-                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x + _caseSize, position.y}, sf::Vector2f{position.x + _caseSize, position.y + _caseSize}}));
+                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x + CASE_SIZE, position.y}, sf::Vector2f{position.x + CASE_SIZE, position.y + CASE_SIZE}}));
                     _cellmap[i].isEdge[RIGHT] = true;
                     _cellmap[i].edgeId[RIGHT] = key;
                     key++;
                 }
             }
-            if (getCellId(sf::Vector2f{position.x - _caseSize, position.y}) == -1 || !_cellmap[i - 1].exist) {
+            if (getCellId(sf::Vector2f{position.x - CASE_SIZE, position.y}) == -1 || !_cellmap[i - 1].exist) {
                 if (position.y > 0 && _cellmap[i - _cellmapWidth].isEdge[LEFT]) {
-                    _vertexmap[_cellmap[i - _cellmapWidth].edgeId[LEFT]].B.y += _caseSize;
+                    _vertexmap[_cellmap[i - _cellmapWidth].edgeId[LEFT]].B.y += CASE_SIZE;
                     _cellmap[i].isEdge[LEFT] = true;
                     _cellmap[i].edgeId[LEFT] = _cellmap[i - _cellmapWidth].edgeId[LEFT];
                 }
                 else {
-                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y}, sf::Vector2f{position.x, position.y + _caseSize}}));
+                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y}, sf::Vector2f{position.x, position.y + CASE_SIZE}}));
                     _cellmap[i].isEdge[LEFT] = true;
                     _cellmap[i].edgeId[LEFT] = key;
                     key++;
                 }
             }
-            if (getCellId(sf::Vector2f{position.x, position.y - _caseSize}) == -1 || !_cellmap[i - _cellmapWidth].exist) {
+            if (getCellId(sf::Vector2f{position.x, position.y - CASE_SIZE}) == -1 || !_cellmap[i - _cellmapWidth].exist) {
                 if (position.x > 0 && _cellmap[i - 1].isEdge[TOP]) {
-                    _vertexmap[_cellmap[i - 1].edgeId[TOP]].B.x += _caseSize;
+                    _vertexmap[_cellmap[i - 1].edgeId[TOP]].B.x += CASE_SIZE;
                     _cellmap[i].isEdge[TOP] = true;
                     _cellmap[i].edgeId[TOP] = _cellmap[i - 1].edgeId[TOP];
                 }
                 else {
-                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y}, sf::Vector2f{position.x + _caseSize, position.y}}));
+                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y}, sf::Vector2f{position.x + CASE_SIZE, position.y}}));
                     _cellmap[i].isEdge[TOP] = true;
                     _cellmap[i].edgeId[TOP] = key;
                     key++;
                 }
             }
-            if (getCellId(sf::Vector2f{position.x, position.y + _caseSize}) == -1 || !_cellmap[i + _cellmapWidth].exist) {
+            if (getCellId(sf::Vector2f{position.x, position.y + CASE_SIZE}) == -1 || !_cellmap[i + _cellmapWidth].exist) {
                 if (position.x > 0 && _cellmap[i - 1].isEdge[BOTTOM]) {
-                    _vertexmap[_cellmap[i - 1].edgeId[BOTTOM]].B.x += _caseSize;
+                    _vertexmap[_cellmap[i - 1].edgeId[BOTTOM]].B.x += CASE_SIZE;
                     _cellmap[i].isEdge[BOTTOM] = true;
                     _cellmap[i].edgeId[BOTTOM] = _cellmap[i - 1].edgeId[BOTTOM];
                 }
                 else {
-                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y + _caseSize}, sf::Vector2f{position.x + _caseSize, position.y + _caseSize}}));
+                    _vertexmap.insert(std::make_pair(key, line_t{sf::Vector2f{position.x, position.y + CASE_SIZE}, sf::Vector2f{position.x + CASE_SIZE, position.y + CASE_SIZE}}));
                     _cellmap[i].isEdge[BOTTOM] = true;
                     _cellmap[i].edgeId[BOTTOM] = key;
                     key++;
@@ -153,8 +163,13 @@ void Map::getFileContent(const std::string& path)
 
 void Map::event(const sf::Event &event, const sf::RenderWindow &window)
 {
-    if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-        _cellmap[getCellId(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))].exist = !_cellmap[getCellId(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))].exist;
+    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+        _leftPressed = true;
+        _pressedExist = !_cellmap[getCellId(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))].exist;
+    } else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left)
+        _leftPressed = false;
+    if (_leftPressed) {
+        _cellmap[getCellId(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))].exist = _pressedExist;
         generateVertexmap();
     }
 }
