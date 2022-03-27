@@ -66,17 +66,13 @@ void Player::raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cel
     float offset = 0.0001f;
     for (auto it : vertexmap) {
         float itAngle = std::atan2f(it.second.A.x - _circle.getPosition().x, it.second.A.y - _circle.getPosition().y);
-        if (std::abs(_angle - itAngle) < (_fov * PI / 180.0f) / 2) {
-            _sortedVertex.push_back(std::make_pair(itAngle, it.second.A));
-            _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, offset)));
-            _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, -offset)));
-        }
+        _sortedVertex.push_back(std::make_pair(itAngle, it.second.A));
+        _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, offset)));
+        _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, -offset)));
         itAngle = std::atan2f(it.second.B.x - _circle.getPosition().x, it.second.B.y - _circle.getPosition().y);
-        if (std::abs(_angle - itAngle) < (_fov * PI / 180.0f) / 2) {
-            _sortedVertex.push_back(std::make_pair(itAngle, it.second.B));
-            _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, offset)));
-            _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, -offset)));
-        }
+        _sortedVertex.push_back(std::make_pair(itAngle, it.second.B));
+        _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, offset)));
+        _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, -offset)));
     }
     std::sort(_sortedVertex.begin(), _sortedVertex.end(),
         [&](std::pair<float, sf::Vector2f> &a, std::pair<float, sf::Vector2f> &b) {

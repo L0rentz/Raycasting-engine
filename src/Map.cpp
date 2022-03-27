@@ -18,7 +18,7 @@ void Map::constructorCommons(const sf::RenderWindow &window)
 {
     _windowSize = window.getSize();
     _cellmapWidth = static_cast<int>(std::ceil(_windowSize.x / CASE_SIZE));
-    _cellmapSize = static_cast<int>(_cellmapWidth * std::ceil(_windowSize.y / CASE_SIZE));
+    _cellmapSize = static_cast<int>((_cellmapWidth + 1) * std::ceil(_windowSize.y / CASE_SIZE));
     _cellmap = new cell_t[_cellmapSize];
     sf::Vector2f position = {0.0f, 0.0f};
     for (int i = 0; i < _cellmapSize; i++) {
@@ -66,7 +66,7 @@ std::map<int, Map::line_t> &Map::getMapvertex()
 
 int Map::getCellId(const sf::Vector2f &position) const
 {
-    if (position.x > _windowSize.x || position.x < 0.0f || position.y > _windowSize.y || position.y < 0.0f) return -1;
+    if (position.x >= _windowSize.x || position.x < 0.0f || position.y > _windowSize.y || position.y < 0.0f) return -1;
     return static_cast<int>(std::floor(position.x / CASE_SIZE) + std::floor(position.y / CASE_SIZE) * std::floor(_windowSize.x / CASE_SIZE));
 }
 
