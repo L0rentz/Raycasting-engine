@@ -63,13 +63,21 @@ sf::Vector2f Player::getPlayerDirection(const float angleRad, const float len) {
 void Player::raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cell_t *cellmap)
 {
     _sortedVertex.clear();
+    _triangleFan.clear();
+    sf::Vector2f rayStart = sf::Vector2f{_circle.getPosition().x / CASE_SIZE, _circle.getPosition().y / CASE_SIZE};
+    sf::Vector2i mapCheck = sf::Vector2i{static_cast<int>(rayStart.x), static_cast<int>(rayStart.y)};
+    if (mapCheck.x >= 0 && mapCheck.x < _windowSize.x / CASE_SIZE && mapCheck.y >= 0 && mapCheck.y < _windowSize.y / CASE_SIZE) {
+        if (cellmap[static_cast<int>(mapCheck.x + mapCheck.y * _windowSize.x / CASE_SIZE)].exist)
+            return;
+    } else return;
+
     float offset = 0.0001f;
     for (auto it : vertexmap) {
-        float itAngle = std::atan2f(it.second.A.x - _circle.getPosition().x, it.second.A.y - _circle.getPosition().y);
+        float itAngle = atan2f(it.second.A.x - _circle.getPosition().x, it.second.A.y - _circle.getPosition().y);
         _sortedVertex.push_back(std::make_pair(itAngle, it.second.A));
         _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, offset)));
         _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.A, -offset)));
-        itAngle = std::atan2f(it.second.B.x - _circle.getPosition().x, it.second.B.y - _circle.getPosition().y);
+        itAngle = atan2f(it.second.B.x - _circle.getPosition().x, it.second.B.y - _circle.getPosition().y);
         _sortedVertex.push_back(std::make_pair(itAngle, it.second.B));
         _sortedVertex.push_back(std::make_pair(itAngle - offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, offset)));
         _sortedVertex.push_back(std::make_pair(itAngle + offset, rotatePointAroundCenter(_circle.getPosition(), it.second.B, -offset)));
@@ -80,10 +88,8 @@ void Player::raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cel
         }
     );
 
-    _triangleFan.clear();
-    sf::Vector2f rayStart = sf::Vector2f{_circle.getPosition().x / CASE_SIZE, _circle.getPosition().y / CASE_SIZE};
     for (auto it : _sortedVertex) {
-        sf::Vector2i mapCheck = sf::Vector2i{static_cast<int>(rayStart.x), static_cast<int>(rayStart.y)};
+        mapCheck = sf::Vector2i{static_cast<int>(rayStart.x), static_cast<int>(rayStart.y)};
         sf::Vector2f rayLength = {0.0f, 0.0f};
         sf::Vector2i step = {0, 0};
         sf::Vector2f rayDir = normalize(sf::Vector2f{it.second.x / CASE_SIZE - rayStart.x, it.second.y / CASE_SIZE - rayStart.y});
@@ -120,9 +126,8 @@ void Player::raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cel
             // if (magnitude(sf::Vector2f{(rayStart.x + rayDir.x * distance * CASE_SIZE), (rayStart.y + rayDir.y * distance * CASE_SIZE)}) > magnitude(sf::Vector2f{_circle.getPosition().x - it.x, _circle.getPosition().y - it.y}))
             //     break;
             if (mapCheck.x >= 0 && mapCheck.x < _windowSize.x / CASE_SIZE && mapCheck.y >= 0 && mapCheck.y < _windowSize.y / CASE_SIZE) {
-                if (cellmap[static_cast<int>(mapCheck.x + mapCheck.y * _windowSize.x / CASE_SIZE)].exist) {
+                if (cellmap[static_cast<int>(mapCheck.x + mapCheck.y * _windowSize.x / CASE_SIZE)].exist)
                     tileFound = true;
-                }
             }
         }
         if (tileFound) {
@@ -131,12 +136,22 @@ void Player::raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cel
     }
 }
 
+void Player::drawDebug(sf::RenderWindow &window)
+{
+    _line[0].position = _circle.getPosition();
+    for (auto it : _triangleFan) {
+        _line[1].position = it;
+        window.draw(_line);
+    }
+}
+
 void Player::draw(sf::RenderWindow &window)
 {
     sf::VertexArray triangle = sf::VertexArray(sf::Triangles, 3);
+    for (int i = 0; i < 3; i++) triangle[i].color = sf::Color(150, 150, 150, 255);
     triangle[0].position = _circle.getPosition();
     if (_triangleFan.size() >= 3) {
-        for (int i = 0; i < _triangleFan.size() - 1; i++) {
+        for (size_t i = 0; i < _triangleFan.size() - 1; i++) {
             triangle[1].position = _triangleFan[i];
             triangle[2].position = _triangleFan[i + 1];
             window.draw(triangle);
@@ -145,10 +160,6 @@ void Player::draw(sf::RenderWindow &window)
         triangle[2].position = _triangleFan[0];
         window.draw(triangle);
     }
-    _line[0].position = _circle.getPosition();
-    for (auto it : _triangleFan) {
-        _line[1].position = it;
-        window.draw(_line);
-    }
+    // drawDebug(window);
     window.draw(_circle);
 }

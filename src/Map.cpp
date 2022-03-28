@@ -66,17 +66,17 @@ std::map<int, Map::line_t> &Map::getMapvertex()
 
 int Map::getCellId(const sf::Vector2f &position) const
 {
-    if (position.x >= _windowSize.x || position.x < 0.0f || position.y > _windowSize.y || position.y < 0.0f) return -1;
+    if (position.x >= _windowSize.x || position.x < 0.0f || position.y >= _windowSize.y || position.y < 0.0f) return -1;
     return static_cast<int>(std::floor(position.x / CASE_SIZE) + std::floor(position.y / CASE_SIZE) * std::floor(_windowSize.x / CASE_SIZE));
 }
 
 void Map::generateCellmap()
 {
     sf::Vector2f position = {0.0f, 0.0f};
-    for (int i = 0, cellmapIdx; _filemap[i] != '\0'; i++) {
+    for (int i = 0, cellmapIdx = 0; _filemap && _filemap[i] != '\0'; i++) {
         cellmapIdx = getCellId(position);
         if (_filemap[i] == '#') _cellmap[cellmapIdx].exist = true;
-        if (_filemap[i] == '\n' || position.x >= _windowSize.x - CASE_SIZE) {
+        if (_filemap[i] == '\n' || position.x >= _windowSize.x) {
             position.x = 0.0f;
             position.y += CASE_SIZE;
         } else position.x += CASE_SIZE;
@@ -88,7 +88,6 @@ void Map::generateVertexmap()
     _vertexmap.clear();
 
     sf::Vector2f position;
-    int cellId = 0;
     int key = 0;
     for (int i = 0; i < _cellmapSize; i++) {
         for (int j = 0; j < 4; j++) _cellmap[i].isEdge[j] = false;
@@ -192,5 +191,5 @@ void Map::draw(sf::RenderWindow &window)
     for (int i = 0; i < _cellmapSize; i++) {
         if (_cellmap[i].exist) window.draw(_cellmap[i].rect);
     }
-    drawVertexmap(window);
+    // drawVertexmap(window);
 }

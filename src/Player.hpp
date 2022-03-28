@@ -15,7 +15,7 @@ class Player {
         void update();
         void raycast(const std::map<int, Map::line_t> &vertexmap, const Map::cell_t *cellmap);
         void draw(sf::RenderWindow &window);
-    
+
     protected:
     private:
         sf::Vector2u _windowSize;
@@ -27,6 +27,7 @@ class Player {
         std::vector<sf::Vector2f> _triangleFan;
 
         float magnitude(sf::Vector2f vec2);
+        void drawDebug(sf::RenderWindow &window);
         sf::Vector2f normalize(sf::Vector2f vec2);
         sf::Vector2f getPlayerDirection(const float angleRad, const float len);
         sf::Vector2f rotatePointAroundCenter(sf::Vector2f center, sf::Vector2f point, float angleRad);

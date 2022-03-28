@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <math.h>
+#include <cstring>
 
 #include "Exception.hpp"
 #include "SFML/Graphics.hpp"

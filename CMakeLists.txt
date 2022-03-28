@@ -10,22 +10,22 @@ include_directories("src")
 include_directories("SFML-2.5.1/include")
 
 # set the project name
-project(RaycastingEngine)
+project(Raycasting2D)
 
 unset(CMAKE_IMPORT_LIBRARY_SUFFIX)
 
 # add the executable
-add_executable(engine ${SRC})
+add_executable(raycasting2d ${SRC})
 
 # link_directories(SFML-2.5.1/lib)
-target_link_directories(engine PRIVATE "SFML-2.5.1/lib")
-target_link_libraries(engine sfml-graphics sfml-window sfml-system sfml-audio)
-target_compile_definitions(engine PRIVATE _CRT_SECURE_NO_WARNINGS)
+target_link_directories(raycasting2d PRIVATE "SFML-2.5.1/lib")
+target_link_libraries(raycasting2d sfml-graphics sfml-window sfml-system sfml-audio)
+target_compile_definitions(raycasting2d PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 unset(CMAKE_IMPORT_LIBRARY_SUFFIX)
 
 add_custom_command(
-    TARGET engine POST_BUILD
+    TARGET raycasting2d POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SFML-2.5.1/bin/sfml-audio-2.dll" "${CMAKE_SOURCE_DIR}/build/debug/sfml-audio-2.dll"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SFML-2.5.1/bin/sfml-graphics-2.dll" "${CMAKE_SOURCE_DIR}/build/debug/sfml-graphics-2.dll"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/SFML-2.5.1/bin/sfml-window-2.dll" "${CMAKE_SOURCE_DIR}/build/debug/sfml-window-2.dll"

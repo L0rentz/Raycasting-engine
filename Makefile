@@ -1,16 +1,16 @@
-NAME			=	engine
+NAME			=	raycasting2d
 
-CXXDIRECTORIES	=    src
-CXXINCLOOP		=    $(foreach d, $(CXXDIRECTORIES), -I$d)
+CXXDIRECTORIES	=   src
+CXXINCLOOP		=	$(foreach d, $(CXXDIRECTORIES), -I$d)
 
 CXXFLAGS		=	-g3 -Wall -Wextra $(CXXINCLOOP) -O3
 
-SRC				=	main.cpp \
-					src/Core.cpp \
-					src/Player.cpp \
-					src/Map.cpp
+SRC				= 	main.cpp \
+						src/Core.cpp \
+						src/Player.cpp \
+						src/Map.cpp
 
-OBJ				=	$(SRCCPP:.cpp=.o)
+OBJ				=	$(SRC:.cpp=.o)
 
 
 LDFLAGS			=	-ldl -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lGL
